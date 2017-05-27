@@ -11,7 +11,9 @@
 - scikit-learn 
 - gensim
 - jieba
-
+- pyemd
+- nltk
+ 
 # 统计结果
 
 - question 词个数最大：31

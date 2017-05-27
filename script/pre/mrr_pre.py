@@ -1,35 +1,53 @@
-def get_mrr_pre(model='dev'):
-    want = []
-    with open('../../data/BoP2017-DBQA.' + model + '.txt', encoding='utf-8-sig') as train_data_file:
+def get_mrr_pre(predict_label_file, true_file='../../data/BoP2017-DBQA.dev.txt', encoding='utf-8-sig'):
+    import numpy
+    mrr = []
+    with open(true_file, encoding=encoding) as train_data_file, open(predict_label_file) as predict_file:
         all_text = [L.rstrip('\n') for L in train_data_file]
+        all_predict_text = [L.rstrip('\n') for L in predict_file]
         # print('总长度', len(all_text))
         temp = ''
         temp_list = []
-        for i, line in enumerate(all_text[:]):
+        predict_list = []
+        for i, line in enumerate(all_text[:90]):
             triple = line.split('\t')
             label = int(triple[0])
-            # print(label)
             q = triple[1]
             if temp != q:
                 temp = q
 
                 # 将该问题的长度和正确的答案放进去
                 if i != 0:
-                    # index = temp_list.index(1)
                     try:
                         index = temp_list.index(1)
-                        want.append((len(temp_list), index))
+                        pridict_true_num = predict_list[index]
+                        predict_list.sort(reverse=True)
+                        rank_i = predict_list.index(pridict_true_num) + 1
+                        # print('总长度：', len(temp_list), '正确排在第n位置：', index + 1, 'rank_i: ', rank_i)
+                        mrr.append(1 / rank_i)
                     except ValueError:
-                        want.append((len(temp_list), -1))
+                        mrr.append(0)
                 # 开始新的问题的统计
                 temp_list.clear()
                 temp_list.append(label)
+                predict_list.clear()
+                predict_list.append(float(all_predict_text[i]))
             else:
                 temp = q
                 temp_list.append(label)
+                predict_list.append(float(all_predict_text[i]))
                 # print(line)
-        index = temp_list.index(1)
-        want.append((len(temp_list), index))
-    return want
+        try:
+            index = temp_list.index(1)
+            pridict_true_num = predict_list[index]
+            predict_list.sort(reverse=True)
+            rank_i = predict_list.index(pridict_true_num) + 1
+            # print('总长度：', len(temp_list), '正确排在第n位置：', index, 'rank_i: ', rank_i)
+            mrr.append(1 / rank_i)
+        except ValueError:
+            mrr.append(0)
+    print('MRR list是', mrr)
+    print('MRR 是', numpy.mean(mrr))
+    return numpy.mean(mrr)
 
-# print(get_mrr_pre())
+
+get_mrr_pre(predict_label_file='pre.txt', true_file='../../data/BoP2017-DBQA.dev.txt')
