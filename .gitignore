@@ -1,6 +1,7 @@
 .idea/
 .idea
 zh/
+*.txt
 data/
 *.npy
 *.data
